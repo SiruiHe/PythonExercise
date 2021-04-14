@@ -75,22 +75,56 @@ def server_login(skt):
 
 def server_user_online(skt,username):
     print("test 该用户成功登陆！")
-    user=User(skt,username)
+    userstate[username]=skt
+    usertemp=""
+    while(1):
+        try:
+            for user in userstate.keys():
+                usertemp=user+"\n"
+        except Exception:
+            usertemp=""
+        sendmsg(skt,usertemp)
+        if(len(usertemp)!=0):
+            break
+        else:
+            time.sleep(9)
 
-    ##
+    while(1):
+        msg=skt.recv(100).decode("utf-8")
+        msg=msg.split("$")
+        if(msg[0]=="chat_with_sb"):
+            username1=msg[1]
+            if username1 in userstate.keys():
+                sendmsg(skt,"chat_start")
+                break
+            else:
+                sendmsg(skt,"chat_failed")
+    chat_with_sb(username, skt, username1)
+
+
+    #a_to_b=threading.Thread(target=chat_with_sb,args=(skt,username))
+    #b_to_a = threading.Thread(target=chat_with_sb, args=(username, username))
+
+    
+def chat_with_sb(username,skt,username1):
+
+    # 我方用户名username,我方socket为skt
+    # 对方用户名username1,对方socket为chatwith
+    chatwith=userstate[username1]
     while (1):
         try:
             data = skt.recv(100)
-            msg = data.decode("utf-8")
+            msg = username+": "+data.decode("utf-8")
         except Exception:
-            print("一客户端登出")
+            print("异常")
             break
         print("收到消息:" + msg)
-
-        if not data:
+        if(msg=="byebye"):
+            sendmsg(skt,msg) ##server端退出确认信息？要看看有没有必要留下来。
             break
-        msg = time.strftime("%y-%m-%d %x")
-        skt.send(msg.encode("utf-8"))
+        sendmsg(chatwith,msg)
+    server_user_online(skt,username)
+
 
 
 
