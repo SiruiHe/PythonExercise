@@ -74,7 +74,7 @@ def server_login(skt):
 
 
 def server_user_online(skt,username):
-    print("test 该用户成功登陆！")
+    print("test 该用户 "+username+" 成功登陆！")
     userstate[username]=skt
     usertemp=""
     while(1):
@@ -87,7 +87,7 @@ def server_user_online(skt,username):
         if(len(usertemp)!=0):
             break
         else:
-            time.sleep(9)
+            time.sleep(3) #time.sleep(9)
 
     while(1):
         msg=skt.recv(100).decode("utf-8")
@@ -114,15 +114,18 @@ def chat_with_sb(username,skt,username1):
     while (1):
         try:
             data = skt.recv(100)
-            msg = username+": "+data.decode("utf-8")
+            msg = data.decode("utf-8")
         except Exception:
             print("异常")
             break
-        print("收到消息:" + msg)
+        msg_with_head = username + ": " + msg
+        print("收到消息:" + msg_with_head)
         if(msg=="byebye"):
-            sendmsg(skt,msg) ##server端退出确认信息？要看看有没有必要留下来。
+            #向对方通知这边退出。msg原始信息（不含用户名头）
+            sendmsg(chatwith,msg)
+            print(username+" 主动退出。")
             break
-        sendmsg(chatwith,msg)
+        sendmsg(chatwith,msg_with_head)
     server_user_online(skt,username)
 
 

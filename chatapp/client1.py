@@ -84,22 +84,24 @@ def client_chat_with_sb(skt,chatwith):
     while (1):
         #data = input("输入：")
         data = input()
+        skt.send(data.encode("utf-8"))
         if(data=="byebye"):
             chat_with_byebye_flag=1
             break
-        skt.send(data.encode("utf-8"))
         if(chat_with_byebye_flag==1):
             #chat_with_byebye_flag=0
             break
     print("你已退出与 "+chatwith+" 的对话")
+    time.sleep(0.5)
     chat_with_byebye_flag=0
+    time.sleep(0.5)
     client_online(skt)
 
 def clinet_thread_receive(skt):
     global chat_with_byebye_flag
     while (1):
         msg=skt.recv(100).decode("utf-8")
-        if(msg=="byebye"):
+        if(msg.startswith("byebye")):
             print("对方已退出。")
             chat_with_byebye_flag=1
             break
