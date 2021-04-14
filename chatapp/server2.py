@@ -4,7 +4,10 @@ host="127.0.0.1"
 port=8888
 addr0=(host,port)
 global usermap
-userstate={}
+
+
+userstate={}    #[用户名：socket]的字典
+
 
 def sendmsg(skt,msg,head=""):
     if len(head)>0:
@@ -48,7 +51,6 @@ def server_signup(skt):
 
 
 def server_login(skt):
-
     global usermap
     flag=0
     username,password="",""
@@ -75,38 +77,48 @@ def server_login(skt):
 
 
 def server_user_online(skt,username):
+    global userstate
     print("test 该用户 "+username+" 成功登陆！")
     userstate[username]=skt
-    usertemp=""
-    while(1):
-        try:
-            for user in userstate.keys():
-                usertemp=user+"\n"
-        except Exception:
-            usertemp=""
-        sendmsg(skt,usertemp)
-        if(len(usertemp)!=0):
-            break
-        else:
-            time.sleep(3) #time.sleep(9)
 
+    #send_usertemp(skt)
+
+    #服务器消息处理与转发
     while(1):
         msg=skt.recv(100).decode("utf-8")
         msg=msg.split("$")
         if(msg[0]=="chat_with_sb"):
             username1=msg[1]
+            skt1=userstate[username1]
+            newmsg=username+":"+msg[2]
+            sendmsg(skt1,newmsg)
+        if(msg[0]=="online_or_not"):
+            username1=msg[1]
             if username1 in userstate.keys():
-                sendmsg(skt,"chat_start")
-                break
-            else:
-                sendmsg(skt,"chat_failed")
-    chat_with_sb(username, skt, username1)
+                sendmsg(skt,"online$")
+            if username1 not in userstate.keys():
+                sendmsg(skt,"offline$")
+        if(msg[0]=="get_usertemp"):
+            send_usertemp(skt)
+
+    #chat_with_sb(username, skt, username1)
 
 
     #a_to_b=threading.Thread(target=chat_with_sb,args=(skt,username))
     #b_to_a = threading.Thread(target=chat_with_sb, args=(username, username))
 
-    
+def send_usertemp(skt):
+    global userstate
+    # 发送在线名单
+    usertemp = ""
+    try:
+        for user in userstate.keys():
+            usertemp=usertemp+user+"\n"
+    except Exception:
+        usertemp = ""
+    sendmsg(skt, usertemp)
+    return
+
 def chat_with_sb(username,skt,username1):
 
     # 我方用户名username,我方socket为skt
