@@ -99,15 +99,6 @@ def clinet_thread_receive(skt):
         if (msg.startswith("byebye$")):
             break
         print("\n" + msg)
-        # try:
-        #    msg = skt.recv(100, 0x40)
-        #    msg=msg.decode("utf-8")
-        # except BlockingIOError as e:
-        #    msg = None
-        # if (clinet_receive_flag == 1):
-        # break
-        # if(msg):
-        # print("\n"+msg)
     print("全局变量被改动。监听线程退出。")
     # return
 
