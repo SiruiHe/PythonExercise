@@ -1,13 +1,12 @@
 import threading,socket,time,shelve
 
-host="127.0.0.1"
+host="0.0.0.0" #??
 port=8888
 addr0=(host,port)
 global usermap
 
 
 userstate={}    #[用户名：socket]的字典
-
 
 def sendmsg(skt,msg,head=""):
     if len(head)>0:
@@ -78,6 +77,8 @@ def server_login(skt):
 
 def server_user_online(skt,username):
     global userstate
+    global file_permission
+    file_permission=0
     print("test 该用户 "+username+" 成功登陆！")
     userstate[username]=skt
 
@@ -102,6 +103,28 @@ def server_user_online(skt,username):
             send_usertemp(skt)
         if (msg[0] == "say_byebye"):
             sendmsg(skt,"byebye$")
+        if (msg[0] == "receive_file_request"):
+            print("收到请求 "+str(msg))
+            username1 = msg[1]
+            skt1 = userstate[username1]
+            sendmsg(skt,"receive_file_permission$")
+            file_permission=1
+            msg=skt.recv(100).decode("utf-8")
+            while(file_permission!=2):
+                pass
+            sendmsg(skt1,msg)
+
+        if(msg[0]=="send_file_request"):
+            while(file_permission!=1):
+                pass
+            sendmsg(skt,"send_file_permission$")
+            file_permission=2
+
+        if (msg[0] == "receive_file_over"):
+            file_permission = 0
+
+
+
 
     #chat_with_sb(username, skt, username1)
 
